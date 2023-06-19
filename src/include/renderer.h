@@ -9,6 +9,7 @@
 #include <string>
 #include <string_view>
 #include <array>
+#include <GL/glew.h>
 
 struct Renderer {
     Renderer(Scene scene);

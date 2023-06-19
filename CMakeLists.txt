@@ -11,11 +11,9 @@ file(GLOB SOURCES
     "src/*.cpp"
     ${EXT_DIR}/tiny_obj_loader/tiny_obj_loader.cc
 )
-
 file(GLOB TEST_APP_SOURCES
     ${PROJECT_SOURCE_DIR}/test/*.cpp
 )
-
 file(GLOB HEADERS 
     "src/include/*.h"
     ${EXT_DIR}/tiny_obj_loader/tiny_obj_loader.h
@@ -34,10 +32,15 @@ target_include_directories(${PROJECT_NAME}
 )
 
 # OpenGL
-find_package(OpenGL REQUIRED)
+add_definitions(-DGLEW_STATIC)
+add_subdirectory(${EXT_DIR}/glfw EXCLUDE_FROM_ALL)
+add_subdirectory(${EXT_DIR}/glew EXCLUDE_FROM_ALL)
+add_subdirectory(${EXT_DIR}/glm EXCLUDE_FROM_ALL)
+
 target_link_libraries(${PROJECT_NAME}
-    PUBLIC
-        OpenGL::GL
+    PRIVATE glfw
+    PRIVATE libglew_static
+    PRIVATE glm
 )
 
 add_executable(${PROJECT_NAME}_test ${TEST_APP_SOURCES})
