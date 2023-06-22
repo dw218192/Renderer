@@ -1,4 +1,5 @@
 #pragma once
+
 #include <glm/glm.hpp>
 
 #ifdef DOUBLE_PRECISION
@@ -17,3 +18,7 @@ using mat4 = glm::mat4;
 #endif
 
 #include <tiny_obj_loader.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_operation.hpp>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>

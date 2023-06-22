@@ -26,4 +26,5 @@ private:
     std::vector<vec3> m_normals;
     std::vector<vec2> m_uvs;
     std::vector<Triangle> m_triangles;
+    
 };
