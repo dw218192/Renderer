@@ -34,12 +34,14 @@ add_subdirectory(${EXT_DIR}/glfw EXCLUDE_FROM_ALL)
 add_subdirectory(${EXT_DIR}/glew-cmake EXCLUDE_FROM_ALL)
 add_subdirectory(${EXT_DIR}/glm EXCLUDE_FROM_ALL)
 add_subdirectory(${EXT_DIR}/tinyobjloader EXCLUDE_FROM_ALL)
+add_subdirectory(${EXT_DIR}/stb EXCLUDE_FROM_ALL)
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC glfw
     PUBLIC libglew_static
     PUBLIC glm
     PUBLIC tinyobjloader
+    PUBLIC stb
 )
 if(MSVC)
   target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)

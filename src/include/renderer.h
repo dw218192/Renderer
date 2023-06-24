@@ -12,8 +12,12 @@
 #include <string_view>
 #include <array>
 
+struct RenderConfig {
+    unsigned width, height;
+};
+
 struct Renderer {
-    Renderer() noexcept : m_vao(0), m_vbo(0), m_ebo(0) { }
+	explicit Renderer(RenderConfig config) noexcept;
     ~Renderer() noexcept;
 
     [[nodiscard]] auto open_scene(Scene scene) noexcept -> Result<void>;
@@ -22,9 +26,11 @@ struct Renderer {
     void set_shader(ShaderProgram const& shader) noexcept;
 
     [[nodiscard]] auto exec(Cmd const& cmd) noexcept -> Result<void>;
-    [[nodiscard]] auto render() noexcept -> Result<RenderResult>;
+    [[nodiscard]] auto render() noexcept -> Result<RenderResult const&>;
     [[nodiscard]] auto valid() const noexcept -> bool { return m_vao != 0; }
 private:
+    RenderConfig m_config;
+    RenderResult m_res;
     ShaderProgram const* m_shader;
     Scene m_scene;
 

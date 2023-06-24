@@ -91,7 +91,9 @@ ShaderProgram& ShaderProgram::operator=(ShaderProgram&& other) noexcept {
 }
 
 void ShaderProgram::use() const noexcept {
-    glUseProgram(m_handle);
+    if (m_handle) {
+        glUseProgram(m_handle);
+    }
 }
 void ShaderProgram::unuse() const noexcept {
     glUseProgram(0);

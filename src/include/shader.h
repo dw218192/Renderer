@@ -21,6 +21,7 @@ struct Shader {
 
     // shouldn't be copied because we have handles to GL resources
     Shader(Shader&) = delete;
+    Shader& operator=(Shader&) = delete;
 
     [[nodiscard]] auto from_file(std::string_view file) noexcept -> Result<void>;
     [[nodiscard]] auto from_src(std::string_view src) noexcept -> Result<void>;
@@ -49,6 +50,7 @@ struct ShaderProgram {
 
 	// shouldn't be copied because we have handles to GL resources
     ShaderProgram(ShaderProgram&) = delete;
+    ShaderProgram& operator=(ShaderProgram&) = delete;
 
     // disallow rvalues to be passed as it would cause dangling reference
 	auto from_shaders(Shader&& vs, Shader&& ps)->Result<void> = delete;

@@ -46,9 +46,9 @@ int main() {
     Shader fs(ShaderType::Fragment);
     res = fs.from_src("\
         #version 330 core\n\
-        out vec4 FragColor;\n\
+        layout(location = 0) out vec3 FragColor;\n\
         void main() {\n\
-            FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n\
+            FragColor = vec3(1.0f, 0.5f, 0.2f);\n\
         }\n\
     ");
     if(!res.valid()) {
@@ -65,7 +65,7 @@ int main() {
         return -1;
     }
 
-    Renderer renderer;
+    Renderer renderer{ { 640, 480 } };
     res = renderer.open_scene(Scene::make_triangle_scene());
     if (!res.valid()) {
         std::cerr << res.error() << std::endl;
@@ -74,24 +74,33 @@ int main() {
     }
     renderer.set_shader(program);
 
-    while (!glfwWindowShouldClose(window)) {
-        glClearColor(0.2, 0.3, 0.3, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT);
-        {
-            auto res = renderer.render();
-            if (!res.valid()) {
-                std::cerr << res.error() << std::endl;
-                glfwTerminate();
-                return -1;
-            }
-        }
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
-        }
+	auto renderRes = renderer.render();
+    if(!renderRes.valid()) {
+        std::cerr << renderRes.error() << std::endl;
+        glfwTerminate();
+        return -1;
     }
+
+    auto&& renderImg = renderRes.value();
+    renderImg.save("../out.png");
+
+    //while (!glfwWindowShouldClose(window)) {
+    //    glClear(GL_COLOR_BUFFER_BIT);
+    //    {
+    //        auto res = renderer.render();
+    //        if (!res.valid()) {
+    //            std::cerr << res.error() << std::endl;
+    //            glfwTerminate();
+    //            return -1;
+    //        }
+    //    }
+    //    glfwSwapBuffers(window);
+    //    glfwPollEvents();
+
+    //    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+    //        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    //    }
+    //}
 
     glfwTerminate();
 }

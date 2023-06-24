@@ -1,6 +1,12 @@
 #include "renderer.h"
 #include <cassert>
 
+Renderer::Renderer(RenderConfig config) noexcept :
+	m_config(config), m_vao(0), m_vbo(0), m_ebo(0)
+{
+    
+}
+
 Renderer::~Renderer() noexcept {
     if(valid()) {
         assert(m_vao && m_vbo && m_ebo);
@@ -25,8 +31,12 @@ auto Renderer::open_scene(Scene scene) noexcept -> Result<void> {
         if (vbo) glDeleteBuffers(1, &vbo);
         if (ebo) glDeleteBuffers(1, &ebo);
     };
-#define CHECK_GL() do { err = glGetError(); if(err != GL_NO_ERROR) {\
-	roll_back(); return std::string { "OpenGL error code: " } + std::to_string(err); } } while(false)
+#define CHECK_GL() do {\
+	err = glGetError();\
+	if(err != GL_NO_ERROR) {\
+		roll_back();\
+		return GLErrorResult<void>(err);\
+	} } while(false)
 
     if(!valid()) {
         // set up buffers
@@ -37,6 +47,11 @@ auto Renderer::open_scene(Scene scene) noexcept -> Result<void> {
 
         vbo = handles[0];
         ebo = handles[1];
+
+        auto res = m_res.init(m_config.width, m_config.height);
+        if(!res.valid()) {
+            return res.error();
+        }
 
         // Set a few settings/modes in OpenGL rendering
         glEnable(GL_POLYGON_SMOOTH);
@@ -86,6 +101,7 @@ auto Renderer::open_scene(Scene scene) noexcept -> Result<void> {
     }
     glBindVertexArray(0);
     CHECK_GL();
+
     m_scene = std::move(scene);
     m_vao = vao;
     m_vbo = vbo;
@@ -99,14 +115,15 @@ void Renderer::set_shader(ShaderProgram const& shader) noexcept {
     m_shader = &shader;
 }
 
-auto Renderer::render() noexcept -> Result<RenderResult> {
+auto Renderer::render() noexcept -> Result<RenderResult const&> {
     if(!valid()) {
         return std::string { "render() called on invalid renderer" };
     }
     if(!m_shader->valid()) {
         return std::string { "render() called on renderer with invalid shader" };
     }
-    
+
+    m_res.prepare();
     glBindVertexArray(m_vao);
     {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
@@ -114,10 +131,11 @@ auto Renderer::render() noexcept -> Result<RenderResult> {
             // check for errors
             GLenum err = glGetError();
             if (err != GL_NO_ERROR) {
-                return std::string{ "OpenGL error code: " } + std::to_string(err);
+                return GLErrorResult<RenderResult const&>(err);
             }
 
             auto scope = m_shader->use_scope();
+
             glDrawElements(GL_TRIANGLES,
                 static_cast<GLsizei>(m_scene.triangles().size() * 3),
                 GL_UNSIGNED_INT,
@@ -126,11 +144,12 @@ auto Renderer::render() noexcept -> Result<RenderResult> {
             // check for errors
             err = glGetError();
             if (err != GL_NO_ERROR) {
-                return std::string{ "OpenGL error code: " } + std::to_string(err);
+                return GLErrorResult<RenderResult const&>(err);
             }
         }
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
     glBindVertexArray(0);
-    return RenderResult{};
+
+    return m_res;
 }
