@@ -4,6 +4,7 @@
 
 #include <scene.h>
 #include <shader.h>
+#include <renderer.h>
 
 int main() {
     if(!glfwInit()) {
@@ -13,6 +14,7 @@ int main() {
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(640, 480, "Test", nullptr, nullptr);
     if(!window) {
@@ -63,10 +65,25 @@ int main() {
         return -1;
     }
 
+    Renderer renderer;
+    res = renderer.open_scene(Scene::make_triangle_scene());
+    if (!res.valid()) {
+        std::cerr << res.error() << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    renderer.set_shader(program);
+
     while (!glfwWindowShouldClose(window)) {
+        glClearColor(0.2, 0.3, 0.3, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);
         {
-            // TODO 
+            auto res = renderer.render();
+            if (!res.valid()) {
+                std::cerr << res.error() << std::endl;
+                glfwTerminate();
+                return -1;
+            }
         }
         glfwSwapBuffers(window);
         glfwPollEvents();

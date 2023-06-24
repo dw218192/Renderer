@@ -11,6 +11,7 @@ Shader::Shader(ShaderType type) noexcept : m_handle(0) {
         break;
     }
 }
+
 Shader::~Shader() noexcept {
     if (m_handle) {
         glDeleteShader(m_handle);
@@ -49,7 +50,8 @@ auto Shader::from_src(std::string_view src) noexcept -> Result<void> {
 
         std::string infoLog(maxLength, '\0');
         glGetShaderInfoLog(handle, maxLength, &maxLength, static_cast<GLchar*>(infoLog.data()));
-        
+
+        infoLog = "Failed to compile shader:\n" + infoLog;
         return infoLog;
     }
 
@@ -57,12 +59,12 @@ auto Shader::from_src(std::string_view src) noexcept -> Result<void> {
     return Result<void>::ok();
 }
 
-
-ShaderProgram::~ShaderProgram() {
+ShaderProgram::~ShaderProgram() noexcept {
     if (m_handle) {
         glDeleteProgram(m_handle);
     }
 }
+
 void ShaderProgram::use() const noexcept {
     glUseProgram(m_handle);
 }
@@ -70,8 +72,7 @@ void ShaderProgram::unuse() const noexcept {
     glUseProgram(0);
 }
 
-
-auto ShaderProgram::from_shaders(Shader vs, Shader ps) -> Result<void> {
+auto ShaderProgram::from_shaders(Shader const& vs, Shader const& ps) noexcept -> Result<void> {
     if(!vs.valid()) {
         return std::string("Invalid vertex shader");
     }
@@ -94,12 +95,13 @@ auto ShaderProgram::from_shaders(Shader vs, Shader ps) -> Result<void> {
 
         std::string infoLog(maxLength, '\0');
         glGetProgramInfoLog(program, maxLength, &maxLength, static_cast<GLchar*>(infoLog.data()));
-        
+
+        infoLog = "Failed to compile shader:\n" + infoLog;
         return infoLog;
     }
 
     m_handle = program;
-    m_vs = std::move(vs);
-    m_ps = std::move(ps);
+    m_vs = &vs;
+    m_ps = &ps;
     return Result<void>::ok();
 }

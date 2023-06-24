@@ -7,24 +7,24 @@
 #include <array>
 
 struct Triangle {
-    std::array<int, 3> verts;
-    std::array<int, 3> norms;
-    std::array<int, 3> uvs;
+    std::array<int, 3> vert_indices;
+};
+
+struct Vertex {
+    vec3 position;
+    vec3 normal;
+    vec2 uv;
 };
 
 struct Scene {
-    Scene() {}
-    ~Scene() {}
-    auto from_obj(std::string_view filename) noexcept -> Result<void>;
-    auto vertices() const noexcept -> std::vector<vec3> const& { return m_vertices; }
-    auto normals() const noexcept -> std::vector<vec3> const& { return m_normals; }
-    auto uvs() const noexcept -> std::vector<vec2> const& { return m_uvs; }
-    auto triangles() const noexcept -> std::vector<Triangle> const& { return m_triangles; }
+    [[nodiscard]] auto from_obj(std::string_view filename) noexcept -> Result<void>;
+    [[nodiscard]] auto vertices() const noexcept -> std::vector<Vertex> const& { return m_vertices; }
+    [[nodiscard]] auto triangles() const noexcept -> std::vector<Triangle> const& { return m_triangles; }
+
+// for test only
+    static auto make_triangle_scene() noexcept -> Scene;
 
 private:
-    std::vector<vec3> m_vertices;
-    std::vector<vec3> m_normals;
-    std::vector<vec2> m_uvs;
+    std::vector<Vertex> m_vertices;
     std::vector<Triangle> m_triangles;
-    
 };
