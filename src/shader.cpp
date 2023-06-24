@@ -18,6 +18,17 @@ Shader::~Shader() noexcept {
     }
 }
 
+Shader::Shader(Shader&& other) noexcept : m_type{other.m_type}, m_handle{other.m_handle} {
+    other.m_handle = 0;
+}
+
+Shader& Shader::operator=(Shader&& other) noexcept {
+    m_type = other.m_type;
+    m_handle = other.m_handle;
+    other.m_handle = 0;
+    return *this;
+}
+
 auto Shader::from_file(std::string_view file) noexcept -> Result<void> {
     std::ifstream stream(file.data());
     if (!stream.is_open()) {
@@ -63,6 +74,20 @@ ShaderProgram::~ShaderProgram() noexcept {
     if (m_handle) {
         glDeleteProgram(m_handle);
     }
+}
+
+ShaderProgram::ShaderProgram(ShaderProgram&& other) noexcept
+	: m_handle{other.m_handle}, m_vs{other.m_vs}, m_ps{other.m_ps}
+{
+    other.m_handle = 0;
+}
+
+ShaderProgram& ShaderProgram::operator=(ShaderProgram&& other) noexcept {
+    m_handle = other.m_handle;
+    m_vs = other.m_vs;
+    m_ps = other.m_ps;
+    other.m_handle = 0;
+    return *this;
 }
 
 void ShaderProgram::use() const noexcept {

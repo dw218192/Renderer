@@ -16,6 +16,9 @@ struct Shader {
     explicit Shader(ShaderType type) noexcept;
     ~Shader() noexcept;
 
+    Shader(Shader&&) noexcept;
+    Shader& operator=(Shader&&) noexcept;
+
     // shouldn't be copied because we have handles to GL resources
     Shader(Shader&) = delete;
 
@@ -41,7 +44,10 @@ struct ShaderProgram {
     ShaderProgram() noexcept : m_handle(0) { }
     ~ShaderProgram() noexcept;
 
-    // shouldn't be copied because we have handles to GL resources
+    ShaderProgram(ShaderProgram&&) noexcept;
+    ShaderProgram& operator=(ShaderProgram&&) noexcept;
+
+	// shouldn't be copied because we have handles to GL resources
     ShaderProgram(ShaderProgram&) = delete;
 
     // disallow rvalues to be passed as it would cause dangling reference
