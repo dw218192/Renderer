@@ -1,18 +1,16 @@
 #include "renderer.h"
 #include <cassert>
+#include <algorithm>
 
 Renderer::Renderer(RenderConfig config) noexcept :
-	m_config(config), m_vao(0), m_vbo(0), m_ebo(0)
-{
-    
-}
+	m_config(config), m_vao(0) {}
 
 Renderer::~Renderer() noexcept {
     if(valid()) {
-        assert(m_vao && m_vbo && m_ebo);
+        assert(m_vao);
+        for (GLuint const handle : m_buffer_handles) assert(handle);
 
-        GLuint const handles[] = { m_vbo, m_ebo };
-        glDeleteBuffers(2, handles);
+        glDeleteBuffers(get_bufhandle_size(), get_bufhandles());
         glDeleteVertexArrays(1, &m_vao);
     }
 }
@@ -24,13 +22,11 @@ auto Renderer::exec(Cmd const& cmd) noexcept -> Result<void> {
 
 auto Renderer::open_scene(Scene scene) noexcept -> Result<void> {
     GLenum err;
-    GLuint vao = m_vao, vbo = m_vbo, ebo = m_ebo;
-
-    auto roll_back = [vao, vbo, ebo]() {
-        if (vao) glDeleteVertexArrays(1, &vao);
-        if (vbo) glDeleteBuffers(1, &vbo);
-        if (ebo) glDeleteBuffers(1, &ebo);
+    auto roll_back = [this]() {
+        if (m_vao) glDeleteVertexArrays(1, &m_vao);
+        glDeleteBuffers(get_bufhandle_size(), get_bufhandles());
     };
+
 #define CHECK_GL() do {\
 	err = glGetError();\
 	if(err != GL_NO_ERROR) {\
@@ -40,35 +36,33 @@ auto Renderer::open_scene(Scene scene) noexcept -> Result<void> {
 
     if(!valid()) {
         // set up buffers
-        glGenVertexArrays(1, &vao);
+        glGenVertexArrays(1, &m_vao);
 
-        GLuint handles[2];
-        glGenBuffers(2, handles);
+        m_buffer_handles.resize(2);
+        glGenBuffers(2, m_buffer_handles.data());
 
-        vbo = handles[0];
-        ebo = handles[1];
-
-        auto res = m_res.init(m_config.width, m_config.height);
+        auto const res = m_res.init(m_config.width, m_config.height);
         if(!res.valid()) {
             return res.error();
         }
-
-        // Set a few settings/modes in OpenGL rendering
-        glEnable(GL_POLYGON_SMOOTH);
-        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-
         CHECK_GL();
     }
 
     // fill buffers with data
-    glBindVertexArray(vao);
+    glBindVertexArray(m_vao);
     {
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, get_vbo());
         {
+            // gather all vertices from all objects in the scene
+            std::vector<Vertex> all_vertices;
+            for(auto&& obj : scene.objects()) {
+                all_vertices.insert(all_vertices.end(), obj.vertices().begin(), obj.vertices().end());
+            }
+
             glBufferData(
                 GL_ARRAY_BUFFER, 
-                scene.vertices().size() * sizeof(Vertex), 
-                scene.vertices().data(),
+                all_vertices.size() * sizeof(Vertex),
+                all_vertices.data(),
                 GL_STATIC_DRAW
             );
             CHECK_GL();
@@ -87,69 +81,88 @@ auto Renderer::open_scene(Scene scene) noexcept -> Result<void> {
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, get_ebo());
         {
+            std::vector<Triangle> all_triangles;
+            for (size_t i = 0, offset = 0; i < scene.objects().size(); ++i) {
+                auto&& obj = scene.objects()[i];
+                std::vector<Triangle> triangles(obj.triangles().size());
+                std::transform(obj.triangles().begin(), obj.triangles().end(), triangles.begin(), 
+                    [offset](Triangle const& in)->Triangle {
+	                    Triangle out = in;
+	                    for (auto&& vi : out.vert_indices) {
+	                        vi += static_cast<unsigned>(offset);
+	                    }
+	                    return out;
+					}
+                );
+
+                all_triangles.insert(all_triangles.end(), triangles.begin(), triangles.end());
+                offset += obj.vertices().size();
+            }
+
             glBufferData(
-                GL_ELEMENT_ARRAY_BUFFER, 
-                scene.triangles().size() * sizeof(Triangle),
-                scene.triangles().data(),
+                GL_ELEMENT_ARRAY_BUFFER,
+                all_triangles.size() * sizeof(Triangle),
+                all_triangles.data(),
                 GL_STATIC_DRAW
             );
             CHECK_GL();
         }
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
     glBindVertexArray(0);
     CHECK_GL();
 
     m_scene = std::move(scene);
-    m_vao = vao;
-    m_vbo = vbo;
-    m_ebo = ebo;
+
+
+    // Set a few settings/modes in OpenGL rendering
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_POLYGON_SMOOTH);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+
+    glBindVertexArray(m_vao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, get_ebo());
+    m_res.prepare();
+    CHECK_GL();
+
     return Result<void>::ok();
 
 #undef CHECK_GL
-}
-
-void Renderer::set_shader(ShaderProgram const& shader) noexcept {
-    m_shader = &shader;
 }
 
 auto Renderer::render() noexcept -> Result<RenderResult const&> {
     if(!valid()) {
         return std::string { "render() called on invalid renderer" };
     }
-    if(!m_shader->valid()) {
-        return std::string { "render() called on renderer with invalid shader" };
-    }
 
-    m_res.prepare();
-    glBindVertexArray(m_vao);
-    {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-        {
-            // check for errors
-            GLenum err = glGetError();
-            if (err != GL_NO_ERROR) {
-                return GLErrorResult<RenderResult const&>(err);
-            }
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    for (size_t i = 0, ebo_offset = 0; i < m_scene.objects().size(); ++i) {
+        auto&& obj = m_scene.objects()[i];
 
-            auto scope = m_shader->use_scope();
-
-            glDrawElements(GL_TRIANGLES,
-                static_cast<GLsizei>(m_scene.triangles().size() * 3),
-                GL_UNSIGNED_INT,
-                0);
-
-            // check for errors
-            err = glGetError();
-            if (err != GL_NO_ERROR) {
-                return GLErrorResult<RenderResult const&>(err);
-            }
+        auto res = obj.begin_draw();
+        if (!res.valid()) {
+            return res.error();
         }
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        {
+            glDrawElements(GL_TRIANGLES,
+                static_cast<GLsizei>(obj.triangles().size() * 3),
+                GL_UNSIGNED_INT,
+                reinterpret_cast<void*>(ebo_offset * sizeof(Triangle))
+            );
+            ebo_offset += obj.triangles().size();
+        }
+        res = obj.end_draw();
+        if (!res.valid()) {
+            return res.error();
+        }
     }
-    glBindVertexArray(0);
+
+    // check for errors
+    auto const err = glGetError();
+    if (err != GL_NO_ERROR) {
+        return GLErrorResult<RenderResult const&>(err);
+    }
 
     return m_res;
 }

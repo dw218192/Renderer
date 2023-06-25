@@ -6,16 +6,19 @@
 
 struct RenderResult {
     friend struct Renderer;
-	RenderResult() = default;
-    ~RenderResult();
+    RenderResult() noexcept;
+    ~RenderResult() noexcept;
 	RenderResult(RenderResult&) = delete;
     RenderResult(RenderResult&&) = delete;
+    RenderResult& operator=(RenderResult&) = delete;
+    RenderResult& operator=(RenderResult&&) = delete;
 
     [[nodiscard]] auto init(unsigned width, unsigned height) noexcept -> Result<void>;
     [[nodiscard]] auto get_pixels() const noexcept -> std::vector<byte> const& {
         return m_pixels;
     }
-    [[nodiscard]] void save(std::string_view file_path) const noexcept;
+    void save(std::string_view file_path) const noexcept;
+    auto upload_to_frame_buffer() const noexcept -> Result<void>;
 private:
     void prepare() const noexcept;
     void update() noexcept;

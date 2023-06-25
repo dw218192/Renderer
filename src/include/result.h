@@ -14,7 +14,6 @@ struct Result {
     [[nodiscard]] constexpr auto valid() const noexcept { return std::holds_alternative<T>(m_data); }
     [[nodiscard]] constexpr auto value() const -> T const& { return std::get<0>(m_data); }
     [[nodiscard]] constexpr auto value() -> T& { return std::get<0>(m_data); }
-
     [[nodiscard]] constexpr auto error() const -> E const& { return std::get<1>(m_data); }
     
 private:
