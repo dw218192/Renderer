@@ -7,16 +7,6 @@
 #include "result.h"
 #include "ext.h"
 
-constexpr char const* vs_fallthrough_src = 
-"\
-	#version 330 core\n\
-	layout (location = 0) in vec3 aPos;\n\
-    uniform mat4 model;\n\
-	void main() {\n\
-        gl_Position = model * vec4(aPos, 1.0);\n\
-    }\n\
-";
-
 constexpr char const* ps_unicolor_src =
 "\
 	#version 330 core\n\
@@ -117,7 +107,8 @@ struct ShaderProgram {
     [[nodiscard]] auto set_uniform(std::string_view name, mat4 const& value) const noexcept -> Result<void>;
     [[nodiscard]] auto set_uniform(std::string_view name, vec3 const& value) const noexcept -> Result<void>;
     
-    [[nodiscard]] auto valid() const noexcept -> bool { return m_handle != 0; }
+    [[nodiscard]] auto valid() const noexcept { return m_handle != 0; }
+
     void use() const noexcept;
     void unuse() const noexcept;
 private:

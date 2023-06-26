@@ -20,8 +20,10 @@ auto Scene::make_triangle_scene() noexcept -> Result<Scene> {
         return res.error();
     }
     Scene scene;
-    scene.m_objects.emplace_back(Object::make_triangle_obj(res.value(), Transform{ vec3{0,0,0}, vec3{0,0,0}, vec3{1,1,1} }));
-    scene.m_objects.emplace_back(Object::make_triangle_obj(res.value(), Transform{ vec3{0.2,0.2,-1}, vec3{0,0,0}, vec3{1,1,1} }));
+    scene.m_objects.emplace_back(Object::make_triangle_obj(res.value(), 
+        Transform{  }));
+    scene.m_objects.emplace_back(Object::make_triangle_obj(res.value(), 
+        Transform{ vec3{0.2,0.2,0}, vec3{0,0,0}, vec3{1,1,1} }));
     return scene;
 }
 

@@ -32,7 +32,7 @@ int main() {
     RenderConfig config{
         640, 480,
         60.0,
-		Transform::look_at(vec3(0,0,0.3), vec3(0, 0, 0), vec3(0, 1, 0))
+		Transform::look_at(vec3(0,0,2), vec3(0, 0, 0), vec3(0, 1, 0))
     };
 
     Scene scene;
@@ -54,26 +54,29 @@ int main() {
             return -1;
         }
     }
-    {
+
+    if constexpr (false)
+	{
         auto const res = renderer.render();
         if (!res.valid()) {
             std::cerr << res.error() << std::endl;
             glfwTerminate();
             return -1;
         }
-
-        auto&& renderImg = res.value();
-        renderImg.save("../out.png");
+         auto&& renderImg = res.value();
+         renderImg.save("../out.png");
     }
-    glfwTerminate();
-    return 0;
 
-#ifdef x
     while (!glfwWindowShouldClose(window)) {
         {
             auto res = renderer.render();
             if (!res.valid()) {
                 std::cerr << res.error() << std::endl;
+                glfwTerminate();
+                return -1;
+            }
+            if(auto res2 = res.value().upload_to_frame_buffer(); !res2.valid()) {
+                std::cerr << res2.error() << std::endl;
                 glfwTerminate();
                 return -1;
             }
@@ -87,5 +90,5 @@ int main() {
     }
 
     glfwTerminate();
-#endif
+
 }

@@ -9,10 +9,11 @@ struct Camera {
     [[nodiscard]] auto get_view_proj() const noexcept -> mat4 const& { return m_view_proj; }
     [[nodiscard]] auto get_transform() const noexcept -> Transform const& { return m_transform; }
     [[nodiscard]] auto get_projection() const noexcept -> mat4 const& { return m_projection; }
-    void set_rotation(vec3 const& rot) noexcept; 
-    void set_position(vec3 const& pos) noexcept;
+    void set_rotation(TransformSpace space, vec3 const& rot) noexcept;
+    void set_position(TransformSpace space, vec3 const& pos) noexcept;
+
 private:
     Transform m_transform;
     mat4 m_projection;
     mat4 m_view_proj;
-};
+}; 

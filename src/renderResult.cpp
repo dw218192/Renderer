@@ -84,21 +84,84 @@ void RenderResult::save(std::string_view file_path) const noexcept {
 }
 
 auto RenderResult::upload_to_frame_buffer() const noexcept -> Result<void> {
-    //static Shader pass_through_vs{ ShaderType::Vertex };
-    //static Shader pass_through_ps{ ShaderType::Fragment };
-    //static ShaderProgram program;
-    //if(!pass_through_vs.valid()) {
-	   // // first time init
-    //    auto const res = pass_through_vs.from_src("\
-	   //     #version 330 core\n\
-	   //     layout (location = 0) in vec3 aPos;\n\
-	   //     void main() {\n\
-	   //         gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n\
-	   //     }\n\
-	   // ");
-    //}
+    static ShaderProgram program;
+    static GLuint quad_vbo;
+    if(!program.valid()) {
+	    // first time init
+        Shader tex_vs{ ShaderType::Vertex };
+        Shader tex_ps{ ShaderType::Fragment };
 
-    return std::string{ "not implemented" };
+    	static constexpr real quad_data[] = {
+		    -1.0, -1.0, 0.0,
+		    1.0, -1.0, 0.0,
+		    -1.0,  1.0, 0.0,
+		    -1.0,  1.0, 0.0,
+		    1.0, -1.0, 0.0,
+		    1.0,  1.0, 0.0,
+        };
+        auto res = tex_vs.from_src("\
+	        #version 330 core\n\
+	        layout (location = 0) in vec3 aPos;\n\
+			out vec2 uv; \n\
+	        void main() {\n\
+	            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n\
+				uv = 0.5 * gl_Position.xy + vec2(0.5); \n\
+	        }\n\
+	    ");
+        if(!res.valid()) {
+            return res;
+        }
+        res = tex_ps.from_src("\
+	        #version 420 core\n\
+	        in vec2 uv;\n\
+			layout(binding=0) uniform sampler2D tex;\n\
+			out vec4 color; \n\
+	        void main() {\n\
+	            color = texture(tex, uv);\n\
+	        }\n\
+	    ");
+        if(!res.valid()) {
+            return res;
+        }
+
+        glGenBuffers(1, &quad_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, quad_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quad_data), quad_data, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        res = program.from_shaders(std::move(tex_vs), std::move(tex_ps));
+        if(!res.valid()) {
+            return res;
+        }
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, m_width, m_height);
+
+	glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_tex);
+    if (auto const err = glGetError(); err != GL_NO_ERROR) {
+        return GLErrorResult<void>(err);
+    }
+
+    // draw the rendered texture onto a quad
+    program.use();
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, quad_vbo);
+        {
+            glDrawArrays(GL_TRIANGLES, 0, 2);
+            if (auto const err = glGetError(); err != GL_NO_ERROR) {
+                return GLErrorResult<void>(err);
+            }
+        }
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+    program.unuse();
+    if (auto const err = glGetError(); err != GL_NO_ERROR) {
+        return GLErrorResult<void>(err);
+    }
+
+    return Result<void>::ok();
 }
 
 void RenderResult::prepare() const noexcept {

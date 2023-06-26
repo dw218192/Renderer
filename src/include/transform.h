@@ -2,6 +2,10 @@
 
 #include "ext.h"
 
+enum class TransformSpace {
+	LOCAL, GLOBAL
+};
+
 struct Transform {
     Transform() noexcept;
     Transform(mat4 const& mat) noexcept;
@@ -15,9 +19,9 @@ struct Transform {
     [[nodiscard]] auto get_scale() const noexcept -> vec3 const& { return m_scale; }
     [[nodiscard]] auto get_matrix() const noexcept -> mat4 const& { return m_trans; }
 
-    void set_rotation(vec3 const& rot) noexcept;
-    void set_position(vec3 const& pos) noexcept;
-    void set_scale(vec3 const& scale) noexcept;
+    void set_rotation(TransformSpace space, vec3 const& rot) noexcept;
+    void set_position(TransformSpace space, vec3 const& pos) noexcept;
+    void set_scale(TransformSpace space, vec3 const& scale) noexcept;
 
 private:
     vec3 m_pos;

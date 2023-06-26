@@ -7,7 +7,6 @@
 #include <array>
 #include <string_view>
 
-// TODO: move these to a separate file
 struct Vertex {
     vec3 position;
     vec3 normal;
