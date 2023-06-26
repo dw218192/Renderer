@@ -30,7 +30,7 @@ auto Scene::get_default_shader() noexcept -> Result<ShaderProgram const&> {
         // initialize default shader program
         Shader vs(ShaderType::Vertex);
         {
-            auto const res = vs.from_src(vs_fallthrough_src);
+            auto const res = vs.from_src(vs_obj_src);
             if (!res.valid()) {
                 return res.error();
             }

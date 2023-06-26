@@ -29,6 +29,11 @@ int main() {
         glfwTerminate();
         return -1;
     }
+    RenderConfig config{
+        640, 480,
+        60.0,
+		Transform::look_at(vec3(0,0,0.3), vec3(0, 0, 0), vec3(0, 1, 0))
+    };
 
     Scene scene;
     {
@@ -40,7 +45,7 @@ int main() {
         }
         scene = res.value();
     }
-    Renderer renderer{ { 640, 480 } };
+    Renderer renderer{ config };
 	{
         auto const res = renderer.open_scene(scene);
         if (!res.valid()) {
