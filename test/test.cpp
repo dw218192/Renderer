@@ -6,6 +6,57 @@
 #include <shader.h>
 #include <renderer.h>
 
+constexpr int width = 640;
+constexpr int height = 480;
+constexpr double motion_scale = 2.0;
+
+bool first_time_motion = false;
+int cur_button_down = -1;
+
+static void clickFunc(GLFWwindow* window, int button, int action, int mods) {
+    (void)window;
+    (void)mods;
+
+    cur_button_down = button;
+    if (action == GLFW_PRESS) {
+        first_time_motion = true;
+    } else if (action == GLFW_RELEASE) {
+        cur_button_down = -1;
+    }
+}
+
+static void motionFunc(GLFWwindow* window, double mouse_x, double mouse_y) {
+	static double prev_mouse_x, prev_mouse_y;
+    if(cur_button_down == -1) {
+        return;
+    }
+
+    auto const rend = static_cast<Renderer*>(glfwGetWindowUserPointer(window));
+    if (!first_time_motion) {
+        double px = motion_scale * (mouse_x - prev_mouse_x) / width;
+        double py = motion_scale * (mouse_y - prev_mouse_y) / height;
+
+    	Cmd cmd;
+        if(cur_button_down == GLFW_MOUSE_BUTTON_LEFT) {
+            cmd = Cmd_CameraMove{ {px, -py, 0 } };
+        } else if (cur_button_down == GLFW_MOUSE_BUTTON_RIGHT) {
+            cmd = Cmd_CameraRot{ {py, px, 0 } };
+        } else if (cur_button_down == GLFW_MOUSE_BUTTON_MIDDLE) {
+            cmd = Cmd_CameraZoom{ static_cast<real>(py) * 10 };
+        }
+
+        auto const res = rend->exec(cmd);
+        if (!res.valid()) {
+            std::cerr << res.error() << std::endl;
+            return;
+        }
+    } else {
+        first_time_motion = false;
+    }
+    prev_mouse_x = mouse_x;
+    prev_mouse_y = mouse_y;
+}
+
 int main() {
     if(!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -30,7 +81,7 @@ int main() {
         return -1;
     }
     RenderConfig config{
-        640, 480,
+        width, height,
         60.0,
 		Transform::look_at(vec3(0,0,2), vec3(0, 0, 0), vec3(0, 1, 0))
     };
@@ -66,6 +117,11 @@ int main() {
          auto&& renderImg = res.value();
          renderImg.save("../out.png");
     }
+
+    glfwSetWindowUserPointer(window, &renderer);
+
+    glfwSetMouseButtonCallback(window, clickFunc);
+    glfwSetCursorPosCallback(window, motionFunc);
 
     while (!glfwWindowShouldClose(window)) {
         {

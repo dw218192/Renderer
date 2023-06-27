@@ -16,8 +16,23 @@ Renderer::~Renderer() noexcept {
 }
 
 auto Renderer::exec(Cmd const& cmd) noexcept -> Result<void> {
-    (void)cmd;
-    return std::string { "Not implemented" };
+    struct Handler {
+        Handler (Renderer& rend) : rend(rend) { }
+        void operator()(Cmd_CameraRot const& rot) const {
+            rend.m_config.cam.set_rotation(TransformSpace::LOCAL, rot.angles_deg);
+        }
+        void operator()(Cmd_CameraMove const& rot) const {
+            rend.m_config.cam.set_position(TransformSpace::LOCAL, rot.delta);
+        }
+        void operator()(Cmd_CameraZoom const& zoom) const {
+            (void)zoom;
+            // TODO
+        }
+        Renderer& rend;
+    } handler{ *this };
+
+    std::visit(handler, cmd);
+    return Result<void>::ok();
 }
 
 auto Renderer::open_scene(Scene scene) noexcept -> Result<void> {

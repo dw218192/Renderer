@@ -3,7 +3,7 @@
 #include <iostream>
 
 Object::Object(ShaderProgram const& shader, Transform transform) 
-    : m_program{&shader}, m_transform{std::move(transform)} 
+    : m_transform{std::move(transform)}, m_program{&shader} 
 { }
 
 auto Object::from_obj(std::string_view filename) noexcept -> Result<void> {

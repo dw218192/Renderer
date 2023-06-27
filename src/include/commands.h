@@ -1,27 +1,19 @@
 #pragma once
 #include <variant>
-#include <glm/glm.hpp>
+#include "ext.h"
 
-struct Cmd_CameraYaw {
-    float angle_deg;
-};
-struct Cmd_CameraPitch {
-    float angle_deg;
-};
-struct Cmd_CameraRoll {
-    float angle_deg;
+struct Cmd_CameraRot {
+    vec3 angles_deg;
 };
 struct Cmd_CameraMove {
-    glm::vec3 delta;
+    vec3 delta;
 };
 struct Cmd_CameraZoom {
-    float delta;
+    real delta;
 };
 
 using Cmd = std::variant<
-    Cmd_CameraYaw,
-    Cmd_CameraPitch,
-    Cmd_CameraRoll,
+    Cmd_CameraRot,
     Cmd_CameraMove,
     Cmd_CameraZoom
 >;

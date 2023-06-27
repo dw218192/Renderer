@@ -4,13 +4,6 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/transform.hpp>
 
-#define assert_valid()\
-	assert(m_trans ==\
-	    glm::translate(mat4(1.0), m_pos) *\
-	    glm::eulerAngleXYZ(m_rot.x, m_rot.y, m_rot.z) *\
-	    glm::scale(mat4(1.0), m_scale)\
-	)
-
 static void decompose(mat4 const& mat, vec3* ppos, vec3* prot, vec3* pscale) {
     if (ppos) {
         *ppos = glm::column(mat, 3);
@@ -44,60 +37,53 @@ static void decompose(mat4 const& mat, vec3* ppos, vec3* prot, vec3* pscale) {
     }
 }
 
-Transform::Transform() noexcept 
-    : m_pos(0,0,0), m_rot(0,0,0), m_scale(1,1,1), m_trans(1.0)
-{ }
-
-Transform::Transform(mat4 const& mat) noexcept 
-    : m_trans{mat} 
-{
-    decompose(m_trans, &m_pos, &m_rot, &m_scale);
-    assert_valid();
-}
-
-Transform::Transform(vec3 const& pos, vec3 const& rot, vec3 const& scale) noexcept
-    : m_pos(pos), m_rot(rot), m_scale(scale)
-{
+static mat4 compose(vec3 const& pos, vec3 const& rot, vec3 const& scale) {
     mat4 const t = glm::translate(pos);
     mat4 const r = glm::eulerAngleXYZ(rot.x, rot.y, rot.z);
     mat4 const s = glm::scale(scale);
-    m_trans = t * r * s;
+    return t * r * s;
+}
+
+Transform::Transform() noexcept 
+    : m_pos{0,0,0}, m_rot{0,0,0}, m_scale{1,1,1}, m_trans(1.0)
+{ }
+
+Transform::Transform(vec3 const& pos, vec3 const& rot, vec3 const& scale) noexcept
+    : m_pos{ pos }, m_rot{ rot }, m_scale{ scale }
+{
+    m_trans = compose(pos, rot, scale);
 }
 
 auto Transform::look_at(vec3 const& pos, vec3 const& target, vec3 const& up) noexcept -> Transform {
-    mat4 const trans = glm::lookAt(pos, target, up);
-    return Transform{ trans };
+    Transform ret;
+    ret.m_trans = glm::lookAt(pos, target, up);
+    decompose(ret.m_trans, &ret.m_pos, &ret.m_rot, &ret.m_scale);
+    return ret;
 }
 
 void Transform::set_rotation(TransformSpace space, vec3 const& rot) noexcept {
     if(space == TransformSpace::GLOBAL) {
-        m_trans = glm::eulerAngleXYZ(rot.x, rot.y, rot.z) * m_trans;
+        m_rot = rot;
     } else {
-        m_trans = m_trans * glm::eulerAngleXYZ(rot.x, rot.y, rot.z);
+        m_rot += rot;
     }
-
-    decompose(m_trans, &m_pos, &m_rot, &m_scale);
-    assert_valid();
+    m_trans = compose(m_pos, m_rot, m_scale);
 }
 
 void Transform::set_position(TransformSpace space, vec3 const& pos) noexcept {
     if (space == TransformSpace::GLOBAL) {
-        m_trans = glm::translate(pos) * m_trans;
+        m_pos = pos;
     } else {
-        m_trans = m_trans * glm::translate(pos);
+        m_pos += pos * m_scale;
     }
-
-    decompose(m_trans, &m_pos, &m_rot, &m_scale);
-    assert_valid();
+    m_trans = compose(m_pos, m_rot, m_scale);
 }
 
 void Transform::set_scale(TransformSpace space, vec3 const& scale) noexcept {
     if (space == TransformSpace::GLOBAL) {
-        m_trans = glm::scale(scale) * m_trans;
+        m_scale = scale;
     } else {
-        m_trans = m_trans * glm::scale(scale);
+        m_scale *= scale;
     }
-
-    decompose(m_trans, &m_pos, &m_rot, &m_scale);
-    assert_valid();
+    m_trans = compose(m_pos, m_rot, m_scale);
 }

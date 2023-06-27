@@ -8,7 +8,6 @@ enum class TransformSpace {
 
 struct Transform {
     Transform() noexcept;
-    Transform(mat4 const& mat) noexcept;
     // create a transform from a position, rotation, and scale
     // rotation is in degrees, and is applied in the order XYZ
     Transform(vec3 const& pos, vec3 const& rot, vec3 const& scale = vec3(1,1,1)) noexcept;
