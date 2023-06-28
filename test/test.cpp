@@ -57,6 +57,15 @@ static void motionFunc(GLFWwindow* window, double mouse_x, double mouse_y) {
     prev_mouse_y = mouse_y;
 }
 
+static void scrollFunc(GLFWwindow* window, double x_offset, double y_offset) {
+    (void)x_offset;
+    auto const rend = static_cast<Renderer*>(glfwGetWindowUserPointer(window));
+    auto const res = rend->exec(Cmd_CameraZoom{static_cast<real>(y_offset)});
+    if(!res.valid()) {
+        std::cerr << res.error() << std::endl;
+    }
+}
+
 int main() {
     if(!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -122,6 +131,7 @@ int main() {
 
     glfwSetMouseButtonCallback(window, clickFunc);
     glfwSetCursorPosCallback(window, motionFunc);
+    glfwSetScrollCallback(window, scrollFunc);
 
     while (!glfwWindowShouldClose(window)) {
         {
