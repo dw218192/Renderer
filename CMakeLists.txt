@@ -36,12 +36,41 @@ add_subdirectory(${EXT_DIR}/glm EXCLUDE_FROM_ALL)
 add_subdirectory(${EXT_DIR}/tinyobjloader EXCLUDE_FROM_ALL)
 add_subdirectory(${EXT_DIR}/stb EXCLUDE_FROM_ALL)
 
+# Manually add imgui
+add_library(imgui STATIC
+    ${EXT_DIR}/imgui/imgui.cpp
+    ${EXT_DIR}/imgui/imgui_draw.cpp
+    ${EXT_DIR}/imgui/imgui_widgets.cpp
+    ${EXT_DIR}/imgui/imgui_demo.cpp
+    ${EXT_DIR}/imgui/imgui_tables.cpp
+)
+# add windows, linux and mac specific files
+# use glfw as backend
+file(GLOB IMGUI_BACKEND_SOURCES
+    ${EXT_DIR}/imgui/backends/imgui_impl_glfw.*
+    ${EXT_DIR}/imgui/backends/imgui_impl_opengl3.*
+    ${EXT_DIR}/imgui/backends/imgui_impl_win32.*
+)
+target_sources(imgui 
+    PRIVATE
+        ${IMGUI_BACKEND_SOURCES}
+)
+target_include_directories(imgui
+    PUBLIC
+        ${EXT_DIR}/imgui
+        ${EXT_DIR}/imgui/backends
+)
+target_link_libraries(imgui
+    PRIVATE
+        glfw
+)
 target_link_libraries(${PROJECT_NAME}
     PUBLIC glfw
     PUBLIC libglew_static
     PUBLIC glm
     PUBLIC tinyobjloader
     PUBLIC stb
+    PUBLIC imgui
 )
 if(MSVC)
   target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)

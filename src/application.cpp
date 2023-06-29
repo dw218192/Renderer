@@ -1,0 +1,106 @@
+#include "application.h"
+#include <iostream>
+
+// stubs for callbacks
+static void clickFunc(GLFWwindow* window, int button, int action, int mods) {
+    auto const app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+    app->mouse_clicked(button, action, mods);
+}
+static void motionFunc(GLFWwindow* window, double x, double y) {
+    auto const app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+    app->cursor_moved(x, y);
+}
+static void scrollFunc(GLFWwindow* window, double x, double y) {
+    auto const app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+    app->mouse_scroll(x, y);
+}
+static void errorFunc(int error, const char* description) {
+    std::cerr << "GLFW error: " << error << ": " << description << std::endl;
+    Application::quit(-1);
+}
+
+Application::Application(RenderConfig const& config, std::string_view name)
+    : m_renderer{ config } {
+    glfwSetErrorCallback(errorFunc);
+
+    if (!glfwInit()) {
+        std::cerr << "Failed to initialize GLFW" << std::endl;
+        quit(-1);
+    }
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    m_window = glfwCreateWindow(config.width, config.height, name.data(), nullptr, nullptr);
+    if (!m_window) {
+        std::cerr << "Failed to create window" << std::endl;
+        quit(-1);
+    }
+    
+    glfwMakeContextCurrent(m_window);
+    glfwSwapInterval(1);
+
+    // set callbacks
+    glfwSetWindowUserPointer(m_window, this);
+    glfwSetMouseButtonCallback(m_window, clickFunc);
+    glfwSetCursorPosCallback(m_window, motionFunc);
+    glfwSetScrollCallback(m_window, scrollFunc);
+
+    // initialize GLEW
+    if (glewInit() != GLEW_OK) {
+        std::cerr << "Failed to initialize GLEW" << std::endl;
+        quit(-1);
+    }
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(m_window, true);
+    ImGui_ImplOpenGL3_Init("#version 130");
+
+    ImGui::SetNextWindowPos({ 10, 10 });
+    ImGui::SetNextWindowSize({ static_cast<float>(config.width) / 5.0f, static_cast<float>(config.height) / 5.0f });
+}
+
+Application::~Application() {
+    glfwTerminate();
+}
+
+void Application::run() {
+    while (!glfwWindowShouldClose(m_window)) {
+        glfwPollEvents();
+
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::ShowDemoWindow();
+
+        // User Loop
+        loop();
+
+        // Rendering
+        ImGui::Render();
+
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+            glfwSetWindowShouldClose(m_window, GLFW_TRUE);
+        }
+
+        glfwSwapBuffers(m_window);
+    }
+}
+
+void Application::quit(int code) {
+    exit(code);
+}

@@ -25,19 +25,14 @@ auto Renderer::exec(Cmd const& cmd) noexcept -> Result<void> {
             rend.m_config.cam.set_position(TransformSpace::LOCAL, rot.delta);
         }
         void operator()(Cmd_CameraZoom const& zoom) const {
-            auto cur_fov = rend.m_config.cam.get_fov();
-        	if(zoom.delta < 0) {
-                cur_fov += 1;
-            } else {
-                cur_fov -= 1;
-            }
-            cur_fov = glm::clamp(cur_fov, REAL_LITERAL(20.0), REAL_LITERAL(140.0));
-            rend.m_config.cam.set_fov(cur_fov);
+            rend.m_config.cam.set_position(TransformSpace::LOCAL, { 0, 0, zoom.delta });
         }
         Renderer& rend;
     } handler{ *this };
 
-    std::visit(handler, cmd);
+    if(valid()) {
+        std::visit(handler, cmd);
+    }
     return Result<void>::ok();
 }
 
