@@ -76,28 +76,36 @@ Application::~Application() {
 }
 
 void Application::run() {
+    double last_frame_time = 0;
     while (!glfwWindowShouldClose(m_window)) {
+        double now = glfwGetTime();
+
+        // Poll and handle events (inputs, window resize, etc.)
         glfwPollEvents();
 
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        if (now - last_frame_time >= m_renderer.get_config().min_frame_time) {
+            // Do Rendering
+            
+            // Start the Dear ImGui frame
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+            ImGui::ShowDemoWindow();
 
-        ImGui::ShowDemoWindow();
+            // User Rendering
+            loop();
 
-        // User Loop
-        loop();
+            // ImGUi Rendering
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // Rendering
-        ImGui::Render();
+            glfwSwapBuffers(m_window);
+            last_frame_time = now;
+        }
 
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(m_window, GLFW_TRUE);
         }
-
-        glfwSwapBuffers(m_window);
     }
 }
 

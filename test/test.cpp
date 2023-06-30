@@ -7,7 +7,7 @@
 #include <application.h>
 
 constexpr double k_init_move_sensitivity = 2.0;
-constexpr double k_init_rot_sensitivity = 20.0;
+constexpr double k_init_rot_sensitivity = 40.0;
 constexpr double k_init_zoom_sensitivity = 10.0;
 
 struct TestApp : public Application {
@@ -104,7 +104,7 @@ void TestApp::loop() {
 int main() {
     RenderConfig const config{
         1280, 720,
-        60.0
+        60.0, 120.0
     };
     TestApp app{ config, "Test App" };
 

@@ -8,12 +8,14 @@
 #include <vector>
 
 struct RenderConfig {
-	RenderConfig(unsigned width, unsigned height, real fovy)
-		: width{width}, height{height}, fovy{fovy}
+	RenderConfig(unsigned width, unsigned height, real fovy, real max_fps)
+		: width{width}, height{height}, fovy{fovy}, max_fps{max_fps}, min_frame_time{REAL_LITERAL(1.0) / max_fps}
 	{ }
 
 	unsigned width, height;
     real fovy;
+    real max_fps;
+    real min_frame_time;
 };
 
 struct Renderer {
@@ -24,6 +26,7 @@ struct Renderer {
     [[nodiscard]] auto exec(Cmd const& cmd) noexcept -> Result<void>;
     [[nodiscard]] auto render() noexcept -> Result<RenderResult const&>;
     [[nodiscard]] auto valid() const noexcept -> bool { return m_vao != 0; }
+    [[nodiscard]] auto get_config() const noexcept -> RenderConfig const& { return m_config; }
 private:
     RenderConfig m_config;
     Camera m_cam;
