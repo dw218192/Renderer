@@ -18,6 +18,11 @@ void Camera::set_position(TransformSpace space, vec3 const& pos) noexcept {
     m_view_proj = m_projection * m_transform.get_matrix();
 }
 
+void Camera::set_transform(Transform const& transform) noexcept {
+    m_transform = transform;
+    m_view_proj = m_projection * m_transform.get_matrix();
+}
+
 void Camera::set_fov(real fov) noexcept {
     m_fov = fov;
     m_projection = glm::perspective(glm::radians(m_fov), m_aspect, k_near, k_far);

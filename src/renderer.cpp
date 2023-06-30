@@ -3,7 +3,10 @@
 #include <algorithm>
 
 Renderer::Renderer(RenderConfig config) noexcept :
-	m_config(config), m_vao(0) {}
+    m_config(config),
+	m_cam{ config.fovy, m_config.width / static_cast<real>(m_config.height), Transform {} },
+	m_vao(0)
+{}
 
 Renderer::~Renderer() noexcept {
     if(valid()) {
@@ -19,13 +22,13 @@ auto Renderer::exec(Cmd const& cmd) noexcept -> Result<void> {
     struct Handler {
         Handler (Renderer& rend) : rend(rend) { }
         void operator()(Cmd_CameraRot const& rot) const {
-            rend.m_config.cam.set_rotation(TransformSpace::LOCAL, rot.angles_deg);
+            rend.m_cam.set_rotation(TransformSpace::LOCAL, rot.angles_deg);
         }
         void operator()(Cmd_CameraMove const& rot) const {
-            rend.m_config.cam.set_position(TransformSpace::LOCAL, rot.delta);
+            rend.m_cam.set_position(TransformSpace::LOCAL, rot.delta);
         }
         void operator()(Cmd_CameraZoom const& zoom) const {
-            rend.m_config.cam.set_position(TransformSpace::LOCAL, { 0, 0, zoom.delta });
+            rend.m_cam.set_position(TransformSpace::LOCAL, { 0, 0, zoom.delta });
         }
         Renderer& rend;
     } handler{ *this };
@@ -111,6 +114,24 @@ auto Renderer::open_scene(Scene scene) noexcept -> Result<void> {
     m_res.prepare();
     CHECK_GL();
 
+    // Set up camera position so it has a good view of the object
+    AABB scene_bound{
+        vec3 { std::numeric_limits<real>::max() },
+        vec3 { std::numeric_limits<real>::lowest() }
+    };
+    for(auto&& obj : m_scene.objects()) {
+        scene_bound.min_pos = glm::min(scene_bound.min_pos, obj.bound().min_pos);
+        scene_bound.max_pos = glm::max(scene_bound.max_pos, obj.bound().max_pos);
+    }
+    auto const center = scene_bound.get_center();
+    real const z_extent = scene_bound.get_extent().z;
+    real const cam_z_local = z_extent + 5;
+    m_cam.set_transform(Transform::look_at(
+        vec3(center.x, center.y + std::tan(REAL_LITERAL(25.0)) * cam_z_local, center.z + cam_z_local) ,
+        center,
+        vec3(0, 1, 0))
+    );
+
     return Result<void>::ok();
 
 #undef CHECK_GL
@@ -125,7 +146,7 @@ auto Renderer::render() noexcept -> Result<RenderResult const&> {
     for (size_t i = 0, vbo_offset = 0; i < m_scene.objects().size(); ++i) {
         auto&& obj = m_scene.objects()[i];
 
-        auto res = obj.begin_draw(m_config.cam);
+        auto res = obj.begin_draw(m_cam);
         if (!res.valid()) {
             return res.error();
         }

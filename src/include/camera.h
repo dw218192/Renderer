@@ -13,7 +13,9 @@ struct Camera {
 
     void set_rotation(TransformSpace space, vec3 const& rot) noexcept;
     void set_position(TransformSpace space, vec3 const& pos) noexcept;
+    void set_transform(Transform const& transform) noexcept;
     void set_fov(real fov) noexcept;
+
 private:
     static constexpr real k_near = REAL_LITERAL(0.1), k_far = REAL_LITERAL(100.0);
     Transform m_transform;

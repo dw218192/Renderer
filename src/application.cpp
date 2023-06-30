@@ -101,6 +101,18 @@ void Application::run() {
     }
 }
 
+auto Application::get_window_height() const noexcept->int {
+    int display_h;
+    glfwGetFramebufferSize(m_window, nullptr, &display_h);
+    return display_h;
+}
+
+auto Application::get_window_width() const noexcept->int {
+    int display_w;
+    glfwGetFramebufferSize(m_window, &display_w, nullptr);
+    return display_w;
+}
+
 void Application::quit(int code) {
     exit(code);
 }

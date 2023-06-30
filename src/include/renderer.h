@@ -8,12 +8,12 @@
 #include <vector>
 
 struct RenderConfig {
-	RenderConfig(unsigned width, unsigned height, real fovy, Transform const& cam_trans)
-		: width{width}, height{height}, cam{fovy, static_cast<real>(width) / static_cast<real>(height), cam_trans  }
+	RenderConfig(unsigned width, unsigned height, real fovy)
+		: width{width}, height{height}, fovy{fovy}
 	{ }
 
 	unsigned width, height;
-    Camera cam;
+    real fovy;
 };
 
 struct Renderer {
@@ -26,6 +26,7 @@ struct Renderer {
     [[nodiscard]] auto valid() const noexcept -> bool { return m_vao != 0; }
 private:
     RenderConfig m_config;
+    Camera m_cam;
     RenderResult m_res;
     Scene m_scene;
 

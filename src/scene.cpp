@@ -11,6 +11,7 @@ auto Scene::from_obj_file(std::string_view filename) noexcept -> Result<void> {
         return ores;
     }
     m_objects.emplace_back(std::move(obj));
+
     return Result<void>::ok();
 }
 

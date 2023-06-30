@@ -27,7 +27,13 @@ auto Object::from_obj(std::string_view filename) noexcept -> Result<void> {
     }
 
     auto const& attrib = reader.GetAttrib();
-    // TODO: triangles with the same vertices may not have the same normal or uv
+    vec3 min_pos{
+        std::numeric_limits<real>::max()
+    };
+    vec3 max_pos{
+        std::numeric_limits<real>::lowest()
+    };
+
     for (auto const& s : reader.GetShapes()) {
         auto const& indices = s.mesh.indices;
         for (size_t i = 0; i < s.mesh.material_ids.size(); ++i) {
@@ -58,9 +64,13 @@ auto Object::from_obj(std::string_view filename) noexcept -> Result<void> {
                 };
 
                 m_vertices.emplace_back(vertex);
+                min_pos = glm::min(vertex.position, min_pos);
+                max_pos = glm::max(vertex.position, max_pos);
             }
         }
     }
+
+    m_bound = { min_pos, max_pos };
     return Result<void>::ok();
 }
 

@@ -39,7 +39,7 @@ static void decompose(mat4 const& mat, vec3* ppos, vec3* prot, vec3* pscale) {
 
 static mat4 compose(vec3 const& pos, vec3 const& rot, vec3 const& scale) {
     mat4 const t = glm::translate(pos);
-    mat4 const r = glm::eulerAngleXYZ(rot.x, rot.y, rot.z);
+    mat4 const r = glm::eulerAngleXYZ(glm::radians(rot.x), glm::radians(rot.y), glm::radians(rot.z));
     mat4 const s = glm::scale(scale);
     return t * r * s;
 }
@@ -58,6 +58,7 @@ auto Transform::look_at(vec3 const& pos, vec3 const& target, vec3 const& up) noe
     Transform ret;
     ret.m_trans = glm::lookAt(pos, target, up);
     decompose(ret.m_trans, &ret.m_pos, &ret.m_rot, &ret.m_scale);
+    assert(compose(ret.m_pos, ret.m_rot, ret.m_scale) == ret.m_trans);
     return ret;
 }
 

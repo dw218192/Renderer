@@ -16,7 +16,9 @@ struct Application {
     Application& operator=(Application&&) = delete;
     virtual ~Application();
     void run();
-    auto get_renderer() -> Renderer& { return m_renderer; }
+    [[nodiscard]] auto get_renderer() -> Renderer& { return m_renderer; }
+    [[nodiscard]] auto get_window_width() const noexcept -> int;
+    [[nodiscard]] auto get_window_height() const noexcept -> int;
 
     virtual void cursor_moved([[maybe_unused]] double x, [[maybe_unused]] double y) {  }
     virtual void mouse_clicked([[maybe_unused]] int button, [[maybe_unused]] int action, [[maybe_unused]] int mods) { }
