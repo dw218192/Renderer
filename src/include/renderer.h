@@ -22,6 +22,15 @@ struct Renderer {
 	explicit Renderer(RenderConfig config) noexcept;
     ~Renderer() noexcept;
 
+	// don't copy because we have handles to GL resources
+	Renderer(Renderer&) = delete;
+    Renderer& operator=(Renderer&) = delete;
+
+    // may implement move, but delete them for now
+    Renderer(Renderer&&) = delete;
+    Renderer& operator=(Renderer&&) = delete;
+
+
     [[nodiscard]] auto open_scene(Scene scene) noexcept -> Result<void>;
     [[nodiscard]] auto exec(Cmd const& cmd) noexcept -> Result<void>;
     [[nodiscard]] auto render() noexcept -> Result<RenderResult const&>;

@@ -17,7 +17,7 @@ struct Camera {
     void set_fov(real fov) noexcept;
 
 private:
-    static constexpr real k_near = REAL_LITERAL(0.1), k_far = REAL_LITERAL(100.0);
+    static constexpr real k_near = REAL_LITERAL(0.1), k_far = REAL_LITERAL(1000.0);
     Transform m_transform;
     real m_fov, m_aspect;
     mat4 m_projection;

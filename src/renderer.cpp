@@ -115,22 +115,7 @@ auto Renderer::open_scene(Scene scene) noexcept -> Result<void> {
     CHECK_GL();
 
     // Set up camera position so it has a good view of the object
-    AABB scene_bound{
-        vec3 { std::numeric_limits<real>::max() },
-        vec3 { std::numeric_limits<real>::lowest() }
-    };
-    for(auto&& obj : m_scene.objects()) {
-        scene_bound.min_pos = glm::min(scene_bound.min_pos, obj.bound().min_pos);
-        scene_bound.max_pos = glm::max(scene_bound.max_pos, obj.bound().max_pos);
-    }
-    auto const center = scene_bound.get_center();
-    real const z_extent = scene_bound.get_extent().z;
-    real const cam_z_local = z_extent + 5;
-    m_cam.set_transform(Transform::look_at(
-        vec3(center.x, center.y + std::tan(REAL_LITERAL(25.0)) * cam_z_local, center.z + cam_z_local) ,
-        center,
-        vec3(0, 1, 0))
-    );
+    m_cam.set_transform(m_scene.get_good_cam_start());
 
     return Result<void>::ok();
 
@@ -143,19 +128,24 @@ auto Renderer::render() noexcept -> Result<RenderResult const&> {
     }
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (size_t i = 0, vbo_offset = 0; i < m_scene.objects().size(); ++i) {
+
+    auto res = m_scene.begin_draw();
+    if (!res.valid()) {
+        return res.error();
+    }
+
+	for (size_t i = 0, vbo_offset = 0; i < m_scene.objects().size(); ++i) {
         auto&& obj = m_scene.objects()[i];
 
-        auto res = obj.begin_draw(m_cam);
+        res = obj.begin_draw(m_cam);
         if (!res.valid()) {
             return res.error();
         }
-        {
-            glDrawArrays(GL_TRIANGLES, 
-                static_cast<GLint>(vbo_offset),
-                static_cast<GLsizei>(obj.vertices().size()));
-            vbo_offset += obj.vertices().size();
-        }
+        glDrawArrays(GL_TRIANGLES,
+            static_cast<GLint>(vbo_offset),
+            static_cast<GLsizei>(obj.vertices().size()));
+        vbo_offset += obj.vertices().size();
+
         obj.end_draw();
     }
 

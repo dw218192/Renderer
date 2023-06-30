@@ -11,6 +11,41 @@ auto Scene::from_obj_file(std::string_view filename) noexcept -> Result<void> {
         return ores;
     }
     m_objects.emplace_back(std::move(obj));
+    return Result<void>::ok();
+}
+
+// here we assume +y is up
+auto Scene::get_good_cam_start() const noexcept -> Transform {
+    constexpr real tan_alpha = REAL_LITERAL(0.4663);
+
+    auto const bound = compute_scene_bound();
+    auto const center = bound.get_center();
+    auto const extent = bound.get_extent();
+
+    // local means relative to the bounding box
+	real const cam_y_local = extent.y + 2;
+    // tan(view_angle) = y_local / (extent.z + z_local)
+
+    return Transform::look_at(
+        vec3(center.x, center.y + cam_y_local, cam_y_local / tan_alpha),
+        center,
+        vec3(0, 1, 0)
+    );
+}
+// here we assume +y is up
+auto Scene::get_good_light_pos() const noexcept -> vec3 {
+    auto const bound = compute_scene_bound();
+    auto const center = bound.get_center();
+    real const y_extent = bound.get_extent().y;
+    return center + vec3{ 0, y_extent + 3, 0 };
+}
+
+auto Scene::begin_draw() const noexcept -> Result<void> {
+    s_default_shader.use();
+    auto const res = s_default_shader.set_uniform(k_uniform_light_pos, get_good_light_pos());
+    if (!res.valid()) {
+        return res.error();
+    }
 
     return Result<void>::ok();
 }
@@ -40,7 +75,7 @@ auto Scene::get_default_shader() noexcept -> Result<ShaderProgram const&> {
         }
         Shader fs(ShaderType::Fragment);
         {
-            auto const res = fs.from_src(ps_unicolor_src);
+            auto const res = fs.from_src(ps_obj_src);
             if (!res.valid()) {
                 return res.error();
             }
@@ -53,4 +88,16 @@ auto Scene::get_default_shader() noexcept -> Result<ShaderProgram const&> {
         }
     }
     return s_default_shader;
+}
+
+AABB Scene::compute_scene_bound() const noexcept {
+    AABB scene_bound{
+	vec3 { std::numeric_limits<real>::max() },
+	vec3 { std::numeric_limits<real>::lowest() }
+    };
+    for (auto&& obj : m_objects) {
+        scene_bound.min_pos = glm::min(scene_bound.min_pos, obj.bound().min_pos);
+        scene_bound.max_pos = glm::max(scene_bound.max_pos, obj.bound().max_pos);
+    }
+    return scene_bound;
 }

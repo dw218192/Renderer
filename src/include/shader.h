@@ -43,18 +43,19 @@ constexpr char const* ps_obj_src =
     in vec2 TexCoords;\n\
     in vec3 Normal;\n\
     in vec3 FragPos;\n\
+	uniform vec3 lightPos;\n\
+    uniform vec3 camPos;\n\
     void main() {\n\
-        const vec3 objectColor = vec3(1.0, 0.5, 0.31);\n\
+        const vec3 objectColor = vec3(178.0/255.0, 190.0/255.0, 181.0/255.0);\n\
         const vec3 lightColor = vec3(1.0, 1.0, 1.0);\n\
-        const vec3 lightPos = vec3(0.0, 2.0, 3.0);\n\
-        float ambientStrength = 0.1;\n\
+        float ambientStrength = 0.3;\n\
         vec3 ambient = ambientStrength * lightColor;\n\
         vec3 norm = normalize(Normal);\n\
         vec3 lightDir = normalize(lightPos - FragPos);\n\
         float diff = max(dot(norm, lightDir), 0.0);\n\
         vec3 diffuse = diff * lightColor;\n\
         float specularStrength = 0.5;\n\
-        vec3 viewDir = normalize(-FragPos);\n\
+        vec3 viewDir = normalize(camPos - FragPos);\n\
         vec3 reflectDir = reflect(-lightDir, norm);\n\
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);\n\
         vec3 specular = specularStrength * spec * lightColor;\n\
@@ -69,6 +70,7 @@ constexpr char const* k_uniform_projection = "projection";
 constexpr char const* k_uniform_light_pos = "lightPos";
 constexpr char const* k_uniform_light_color = "lightColor";
 constexpr char const* k_uniform_object_color = "objectColor";
+constexpr char const* k_uniform_cam_pos = "camPos";
 
 enum class ShaderType {
     Vertex,

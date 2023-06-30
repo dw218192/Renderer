@@ -110,7 +110,7 @@ int main() {
 
     Scene scene;
     {
-        auto const res = scene.from_obj_file("../_files/teapot.obj");
+        auto const res = scene.from_obj_file("../_files/armadillo.obj");
         // auto const res = Scene::make_triangle_scene();
         if(!res.valid()) {
             std::cerr << res.error() << std::endl;
