@@ -20,7 +20,7 @@ struct Application {
     [[nodiscard]] auto get_window_width() const noexcept -> int;
     [[nodiscard]] auto get_window_height() const noexcept -> int;
 
-    virtual void cursor_moved([[maybe_unused]] double x, [[maybe_unused]] double y) {  }
+	virtual void cursor_moved([[maybe_unused]] double x, [[maybe_unused]] double y) {  }
     virtual void mouse_clicked([[maybe_unused]] int button, [[maybe_unused]] int action, [[maybe_unused]] int mods) { }
     virtual void mouse_scroll([[maybe_unused]] double x, [[maybe_unused]] double y) { }
     virtual void loop() {}

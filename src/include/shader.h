@@ -48,7 +48,7 @@ constexpr char const* ps_obj_src =
     void main() {\n\
         const vec3 objectColor = vec3(178.0/255.0, 190.0/255.0, 181.0/255.0);\n\
         const vec3 lightColor = vec3(1.0, 1.0, 1.0);\n\
-        float ambientStrength = 0.3;\n\
+        float ambientStrength = 0.2;\n\
         vec3 ambient = ambientStrength * lightColor;\n\
         vec3 norm = normalize(Normal);\n\
         vec3 lightDir = normalize(lightPos - FragPos);\n\

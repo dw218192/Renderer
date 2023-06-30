@@ -4,14 +4,24 @@
 // stubs for callbacks
 static void clickFunc(GLFWwindow* window, int button, int action, int mods) {
     auto const app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+    // check if ImGui is using the mouse
+    if (ImGui::GetIO().WantCaptureMouse) {
+        return;
+    }
     app->mouse_clicked(button, action, mods);
 }
 static void motionFunc(GLFWwindow* window, double x, double y) {
     auto const app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+    if (ImGui::GetIO().WantCaptureMouse) {
+        return;
+    }
     app->cursor_moved(x, y);
 }
 static void scrollFunc(GLFWwindow* window, double x, double y) {
     auto const app = static_cast<Application*>(glfwGetWindowUserPointer(window));
+    if (ImGui::GetIO().WantCaptureMouse) {
+        return;
+    }
     app->mouse_scroll(x, y);
 }
 static void errorFunc(int error, const char* description) {
@@ -68,7 +78,8 @@ Application::Application(RenderConfig const& config, std::string_view name)
     ImGui_ImplOpenGL3_Init("#version 130");
 
     ImGui::SetNextWindowPos({ 10, 10 });
-    ImGui::SetNextWindowSize({ static_cast<float>(config.width) / 5.0f, static_cast<float>(config.height) / 5.0f });
+    ImGui::SetNextWindowSize({ 0, static_cast<float>(config.height) / 5.0f });
+    // ImGui::GetIO().IniFilename = nullptr;
 }
 
 Application::~Application() {
@@ -90,7 +101,6 @@ void Application::run() {
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-            ImGui::ShowDemoWindow();
 
             // User Rendering
             loop();
@@ -102,6 +112,8 @@ void Application::run() {
             glfwSwapBuffers(m_window);
             last_frame_time = now;
         }
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(m_window, GLFW_TRUE);

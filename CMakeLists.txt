@@ -7,11 +7,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(EXT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ext")
-file(GLOB SOURCES 
-    "src/*.cpp"
+file(GLOB SOURCES
+    ${PROJECT_SOURCE_DIR}/src/*.cpp
+    # custom widgets
+    ${PROJECT_SOURCE_DIR}/src/imgui/*.cpp
 )
-file(GLOB HEADERS 
-    "src/include/*.h"
+file(GLOB HEADERS
+    ${PROJECT_SOURCE_DIR}/src/include/*.h
+    # custom widgets
+    ${PROJECT_SOURCE_DIR}/src/include/imgui/*.h
 )
 file(GLOB TEST_APP_SOURCES
     ${PROJECT_SOURCE_DIR}/test/*.cpp

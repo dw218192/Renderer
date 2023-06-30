@@ -127,8 +127,6 @@ auto Renderer::render() noexcept -> Result<RenderResult const&> {
         return std::string { "render() called on invalid renderer" };
     }
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     auto res = m_scene.begin_draw();
     if (!res.valid()) {
         return res.error();
