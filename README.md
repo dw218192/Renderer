@@ -60,12 +60,47 @@ MinimalApp::MinimalApp(RenderConfig const& config, std::string_view const& name)
 
 ```cpp
 void MinimalApp::loop() {
-	auto render_res = get_renderer().render();
-    if(!render_res.valid()) {
-        std::cerr << render_res.error() << std::endl;
+	auto res = get_renderer().render();
+    if(!res.valid()) {
+        std::cerr << res.error() << std::endl;
         Application::quit(-1);
     }
-    render_res.value().save("./out.png");
+    
+    auto render_res = res.value();
+    render_res.save("./out.png");
     Application::quit(0);
+}
+```
+- you may also retrieve the raw pixel data from the render result and do something else with it.
+- the pixel is stored in RGB order, and each channel is stored in a byte (0-255).
+```cpp
+int w = render_res.get_width();
+int h = render_res.get_height();
+auto pixels = render_res.get_pixels();
+for (int i = 0; i < w; ++i) {
+    for (int j = 0; j < h; ++j) {
+        int idx = i * h + j;
+        byte r = pixels[3 * idx + 0];
+        byte g = pixels[3 * idx + 1];
+        byte b = pixels[3 * idx + 2];
+
+        // do something with the pixel with value (r,g,b)
+    }
+}
+```
+
+- To start the application, simply create an instance of your class and call the `run()` method.
+
+```cpp
+int main() {
+    RenderConfig config{
+        1280, 720, // resolution
+        60.0, // y field of view
+        120.0 // frame rate cap
+    };
+
+    MinimalApp app{ config, "MinimalApp" };
+    app.run();
+    return 0;
 }
 ```

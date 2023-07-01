@@ -17,6 +17,9 @@ struct RenderResult {
     [[nodiscard]] auto get_pixels() const noexcept -> std::vector<byte> const& {
         return m_pixels;
     }
+    [[nodiscard]] auto get_width() const noexcept -> uint { return m_width; }
+    [[nodiscard]] auto get_height() const noexcept -> uint { return m_height; }
+
     void save(std::string_view file_path) const noexcept;
     auto upload_to_frame_buffer() const noexcept -> Result<void>;
 private:
