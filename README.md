@@ -5,14 +5,17 @@ This is a simple renderer library that supports the following functionalities:
 
 # Requirement
 1. Operating Systems: Windows or Linux
-3. (If on Windows) Visual Studio 2019 or above
-4. (If on Linux) CMake 3.11 or above, Make, GCC/G++ 7.3.0 or above
+2. CMake 3.11 or above
+3. Compiler toolchain with C++17 support
+    - On Windows, Visual Studio 2017 or above is recommended.
+    - On Linux, gcc 7.3 or above is recommended.
 
 # How to Build
-1. Clone the repository
+1. Clone the repository (Note: Please pass the `--recursive` flag to also clone the submodules)
+    - In case you forgot to add `--recursive`, you can run `git submodule update --init --recursive` to clone the submodules after cloning the repository
 2. Make a build directory in the top level directory: `mkdir build`
 3. Change to the build directory: `cd build`
-4. Run cmake to configure the project: `cmake ..`
+4. Run cmake to configure and generate the project: `cmake ..`
 5. Build the project
     * On Windows, open the generated .sln file in Visual Studio and build the project.
     * On Linux, run `make` in the build directory.
@@ -52,7 +55,7 @@ MinimalApp::MinimalApp(RenderConfig const& config, std::string_view const& name)
 }
 ```
 
-- In the `loop()` method, you may do some rendering, such as rendering the scene and swap the buffers.
+- The `loop()` method is called every frame, and you may use it to update the scene and render it, or render ImGui widgets.
 - Here we'll just render the scene once, save it to a file, and quit the application.
 
 ```cpp
