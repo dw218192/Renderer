@@ -27,6 +27,7 @@ This is a simple renderer library that supports the following functionalities:
 - All functions that may fail return a `Result<T,E>` object, where `T` is the return type and `E` is the error type (which is usually `std::string`).
 - To check if a function call is successful, you may use the `valid()` method of the `Result` object.
 - To get the return value of a successful function call, you may use the `value()` method of the `Result` object.
+- Always check if a function call is successful before using the return value.
 
 ## Creating an application and Rendering
 - This section will show you how to create a windowed application and render an image from a .obj file.
