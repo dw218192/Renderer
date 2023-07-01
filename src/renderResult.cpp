@@ -79,7 +79,7 @@ auto RenderResult::init(unsigned width, unsigned height) noexcept -> Result<void
 void RenderResult::save(std::string_view file_path) const noexcept {
     const_cast<RenderResult*>(this)->update();
 
-    // stbi_flip_vertically_on_write(1);
+    stbi_flip_vertically_on_write(1);
     stbi_write_png(file_path.data(), m_width, m_height, 3, m_pixels.data(), m_width * 3);
 }
 

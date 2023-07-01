@@ -113,10 +113,6 @@ auto Object::begin_draw(Camera const& cam) const noexcept -> Result<void> {
     if (!res.valid()) {
         return res;
     }
-    res = m_program->set_uniform(k_uniform_cam_pos, cam.get_transform().get_position());
-    if (!res.valid()) {
-        return res;
-    }
 
     return Result<void>::ok();
 }

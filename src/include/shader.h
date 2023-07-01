@@ -44,10 +44,11 @@ constexpr char const* ps_obj_src =
     in vec3 Normal;\n\
     in vec3 FragPos;\n\
 	uniform vec3 lightPos;\n\
-    uniform vec3 camPos;\n\
+    uniform mat4 view;\n\
     void main() {\n\
         const vec3 objectColor = vec3(178.0/255.0, 190.0/255.0, 181.0/255.0);\n\
         const vec3 lightColor = vec3(1.0, 1.0, 1.0);\n\
+		vec3 camPos = view[3].xyz;\n\
         float ambientStrength = 0.2;\n\
         vec3 ambient = ambientStrength * lightColor;\n\
         vec3 norm = normalize(Normal);\n\
@@ -70,7 +71,6 @@ constexpr char const* k_uniform_projection = "projection";
 constexpr char const* k_uniform_light_pos = "lightPos";
 constexpr char const* k_uniform_light_color = "lightColor";
 constexpr char const* k_uniform_object_color = "objectColor";
-constexpr char const* k_uniform_cam_pos = "camPos";
 
 enum class ShaderType {
     Vertex,

@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.11)
 set(PROJECT_NAME "Renderer")
 project(${PROJECT_NAME} CXX)
 
+option(BUILD_TESTS "Build test programs" ON)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -17,10 +19,6 @@ file(GLOB HEADERS
     # custom widgets
     ${PROJECT_SOURCE_DIR}/src/include/imgui/*.h
 )
-file(GLOB TEST_APP_SOURCES
-    ${PROJECT_SOURCE_DIR}/test/*.cpp
-)
-
 add_definitions(-DSINGLE_PRECISION)
 add_library(${PROJECT_NAME}
     STATIC
@@ -82,8 +80,13 @@ else()
   target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()
 
-add_executable(${PROJECT_NAME}_test ${TEST_APP_SOURCES})
-target_link_libraries(${PROJECT_NAME}_test
-    PUBLIC
-        ${PROJECT_NAME}
-)
+if(BUILD_TESTS)
+#add all test apps
+add_executable(gui_test_app ${PROJECT_SOURCE_DIR}/test/gui_example/main.cpp)
+target_link_libraries(gui_test_app ${PROJECT_NAME})
+
+add_executable(minimal_app ${PROJECT_SOURCE_DIR}/test/minimal_example/main.cpp)
+target_link_libraries(minimal_app ${PROJECT_NAME})
+set_property(TARGET minimal_app PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/test/minimal_example")
+
+endif()
