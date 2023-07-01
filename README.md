@@ -77,15 +77,11 @@ void MinimalApp::loop() {
 int w = render_res.get_width();
 int h = render_res.get_height();
 auto pixels = render_res.get_pixels();
-for (int i = 0; i < w; ++i) {
-    for (int j = 0; j < h; ++j) {
-        int idx = i * h + j;
-        byte r = pixels[3 * idx + 0];
-        byte g = pixels[3 * idx + 1];
-        byte b = pixels[3 * idx + 2];
-
-        // do something with the pixel with value (r,g,b)
-    }
+for (int idx = 0; idx < w * h; ++idx) {
+    byte r = pixels[3 * idx + 0];
+    byte g = pixels[3 * idx + 1];
+    byte b = pixels[3 * idx + 2];
+    // do something with r, g, b
 }
 ```
 
