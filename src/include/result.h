@@ -12,8 +12,10 @@ struct Result {
     constexpr Result(E const& e) noexcept : m_data{ e } {}
 
     [[nodiscard]] constexpr auto valid() const noexcept { return std::holds_alternative<T>(m_data); }
-    [[nodiscard]] constexpr auto value() const -> T const& { return std::get<0>(m_data); }
+
+	[[nodiscard]] constexpr auto value() const -> T const& { return std::get<0>(m_data); }
     [[nodiscard]] constexpr auto value() -> T& { return std::get<0>(m_data); }
+
     [[nodiscard]] constexpr auto error() const -> E const& { return std::get<1>(m_data); }
     
 private:
@@ -29,7 +31,7 @@ struct Result<void, E> {
 
     [[nodiscard]] constexpr auto valid() const noexcept -> bool { return !m_data; }
     [[nodiscard]] constexpr auto error() const -> E const& { return *m_data; }
-
+    static void value() noexcept { }
 private:
     std::optional<E> m_data;
 };

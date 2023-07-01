@@ -76,11 +76,24 @@ auto RenderResult::init(unsigned width, unsigned height) noexcept -> Result<void
     return Result<void>::ok();
 }
 
-void RenderResult::save(std::string_view file_path) const noexcept {
+void RenderResult::save(FileFormat fmt, std::string_view file_path) const noexcept {
     const_cast<RenderResult*>(this)->update();
 
-    stbi_flip_vertically_on_write(1);
-    stbi_write_png(file_path.data(), m_width, m_height, 3, m_pixels.data(), m_width * 3);
+    // stbi_flip_vertically_on_write(1);
+    switch (fmt) {
+        case FileFormat::PNG:
+            stbi_write_png(file_path.data(), m_width, m_height, 3, m_pixels.data(), m_width * 3);
+            break;
+        case FileFormat::BMP:
+            stbi_write_bmp(file_path.data(), m_width, m_height, 3, m_pixels.data());
+            break;
+        case FileFormat::TGA:
+            stbi_write_tga(file_path.data(), m_width, m_height, 3, m_pixels.data());
+            break;
+        case FileFormat::JPG:
+            stbi_write_jpg(file_path.data(), m_width, m_height, 3, m_pixels.data(), 100);
+            break;
+    }
 }
 
 auto RenderResult::upload_to_frame_buffer() const noexcept -> Result<void> {
@@ -171,6 +184,16 @@ void RenderResult::prepare() const noexcept {
 
 void RenderResult::update() noexcept {
     glReadPixels(0, 0, m_width, m_height, GL_RGB, GL_UNSIGNED_BYTE, m_pixels.data());
+    // flip vertically
+    for (int y = 0; y < m_height / 2; ++y) {
+        for (int x = 0; x < m_width; ++x) {
+            int const frm = y * m_width + x;
+            int const to = (m_height - y - 1) * m_width + x;
+            for (int k = 0; k < 3; ++k) {
+	            std::swap(m_pixels[3 * frm + k], m_pixels[3 * to + k]);
+            }
+        }
+    }
 }
 
 RenderResult::RenderResult() noexcept

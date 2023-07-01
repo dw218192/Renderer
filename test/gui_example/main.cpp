@@ -96,10 +96,7 @@ void TestApp::mouse_clicked(int button, int action, int mods) {
 void TestApp::mouse_scroll(double x, double y) {
     (void)x;
     real const delta = y < 0 ? REAL_LITERAL(-1.0) : REAL_LITERAL(1.0);
-    auto const res = get_renderer().exec(Cmd_CameraZoom{ delta });
-    if (!res.valid()) {
-        std::cerr << res.error() << std::endl;
-    }
+    check_error(get_renderer().exec(Cmd_CameraZoom{ delta }));
 }
 
 
@@ -110,20 +107,8 @@ void TestApp::draw_imgui() {
     auto path = ImGui::OpenFileDialogue(m_control_state.dialogue, "Open an .obj File");
     if (!path.empty() && path != cur_obj_file) {
         Scene scene;
-        {
-            auto const res = scene.from_obj_file(path);
-            if (!res.valid()) {
-                std::cerr << res.error() << std::endl;
-                Application::quit(-1);
-            }
-        }
-
-        auto const res = get_renderer().open_scene(scene);
-        if (!res.valid()) {
-            std::cerr << res.error() << std::endl;
-            Application::quit(-1);
-        }
-
+        check_error(scene.from_obj_file(path));
+        check_error(get_renderer().open_scene(scene));
         cur_obj_file = path;
     }
 
@@ -144,16 +129,8 @@ void TestApp::loop() {
     if(!get_renderer().valid()) {
         return;
     }
-
-    auto res = get_renderer().render();
-    if (!res.valid()) {
-        std::cerr << res.error() << std::endl;
-        quit(-1);
-    }
-    if (auto res2 = res.value().upload_to_frame_buffer(); !res2.valid()) {
-        std::cerr << res2.error() << std::endl;
-        quit(-1);
-    }
+    auto&& render_res = check_error(get_renderer().render());
+    check_error(render_res.upload_to_frame_buffer());
 }
 
 int main() {

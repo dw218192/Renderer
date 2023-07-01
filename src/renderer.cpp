@@ -44,6 +44,7 @@ auto Renderer::open_scene(Scene scene) noexcept -> Result<void> {
     auto roll_back = [this]() {
         if (m_vao) glDeleteVertexArrays(1, &m_vao);
         glDeleteBuffers(get_bufhandle_size(), get_bufhandles());
+        m_vao = 0;
     };
 
 #define CHECK_GL() do {\

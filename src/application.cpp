@@ -1,5 +1,4 @@
 #include "application.h"
-#include <iostream>
 
 // stubs for callbacks
 static void clickFunc(GLFWwindow* window, int button, int action, int mods) {
@@ -31,6 +30,13 @@ static void errorFunc(int error, const char* description) {
 
 Application::Application(RenderConfig const& config, std::string_view name)
     : m_renderer{ config } {
+    if (s_app) {
+        std::cerr << "There can only be one instance of application" << std::endl;
+        Application::quit(-1);
+    } else {
+        s_app = this;
+    }
+
     glfwSetErrorCallback(errorFunc);
 
     if (!glfwInit()) {

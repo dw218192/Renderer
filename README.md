@@ -22,7 +22,14 @@ This is a simple renderer library that supports the following functionalities:
 
 # Example
 - For a complete GUI application example, please refer to the `test/gui_example` directory.
-- The following code snippet shows a quick way to render an image from a .obj file.
+
+## Error Handling
+- All functions that may fail return a `Result<T,E>` object, where `T` is the return type and `E` is the error type (which is usually `std::string`).
+- To check if a function call is successful, you may use the `valid()` method of the `Result` object.
+- To get the return value of a successful function call, you may use the `value()` method of the `Result` object.
+
+## Creating an application and Rendering
+- This section will show you how to create a windowed application and render an image from a .obj file.
 - First include the necessary header files under the `include` directory, and create a class that inherits from the `Application` class.
 
 ```cpp
@@ -100,3 +107,7 @@ int main() {
     return 0;
 }
 ```
+
+## Passing user commands to the renderer
+- All user commands are passed to the renderer through the `Renderer::exec()` method.
+- The `exec()` method takes any instance of the classes defined in `commands.h` as its argument.

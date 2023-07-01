@@ -6,6 +6,11 @@
 #include <vector>
 
 struct Scene {
+    /**
+     * \brief Creates a scene from an obj file.
+     * \param filename the path to the obj file
+     * \return nothing if the file was loaded successfully, an error otherwise
+    */
     [[nodiscard]] auto from_obj_file(std::string_view filename) noexcept -> Result<void>;
     [[nodiscard]] auto objects() const noexcept -> std::vector<Object> const& { return m_objects; }
 

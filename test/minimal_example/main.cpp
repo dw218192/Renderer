@@ -5,32 +5,34 @@
 struct MinimalApp : public Application {
     MinimalApp(RenderConfig const& config, std::string_view const& name);
     void loop() override;
+    int loop_cnt = 0;
 };
 
 MinimalApp::MinimalApp(RenderConfig const& config, std::string_view const& name)
     : Application{ config, name }
 {
     Scene scene;
-    auto res = scene.from_obj_file("./armadillo.obj");
-    if (!res.valid()) {
-        std::cerr << res.error() << std::endl;
-        Application::quit(-1);
-    }
-    auto open_res = get_renderer().open_scene(scene);
-    if (!open_res.valid()) {
-        std::cerr << open_res.error() << std::endl;
-        Application::quit(-1);
-    }
+    check_error(scene.from_obj_file("./armadillo.obj"));
+    check_error(get_renderer().open_scene(scene));
 }
 
 void MinimalApp::loop() {
-	auto render_res = get_renderer().render();
-    if(!render_res.valid()) {
-        std::cerr << render_res.error() << std::endl;
-        Application::quit(-1);
+    if(loop_cnt == 0) {
+        auto&& render_res = check_error(get_renderer().render());
+        render_res.save(FileFormat::PNG, "./out.png");
+        render_res.save(FileFormat::JPG, "./out.jpg");
+
+    	++loop_cnt;
+    } else {
+        Scene scene;
+        check_error(scene.from_obj_file("./teapot.obj"));
+        check_error(get_renderer().open_scene(scene));
+        auto&& render_res =  check_error(get_renderer().render());
+        render_res.save(FileFormat::BMP, "./out.bmp");
+        render_res.save(FileFormat::TGA, "./out.tga");
+
+        Application::quit(0);
     }
-    render_res.value().save("./out.png");
-    Application::quit(0);
 }
 
 int main() {
